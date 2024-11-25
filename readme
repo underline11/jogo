@@ -1,0 +1,36 @@
+# Jogo de Aventura em Pygame
+
+Este é um jogo de aventura simples desenvolvido com a biblioteca **Pygame**. O jogador controla um personagem que explora diferentes níveis, interage com objetos como chaves e baús e navega entre cenários, incluindo uma casa com interior detalhado.
+
+## Funcionalidades
+
+- **Movimentação**: Use as setas do teclado para mover o jogador.
+- **Interação**:
+  - Pegue uma chave para acessar novas áreas.
+  - Entre na casa e explore o interior.
+  - Colete itens como um escudo para se proteger.
+- **Progressão**:
+  - Transite entre os níveis ao alcançar os objetivos definidos.
+
+## Como Jogar
+
+1. **Movimente-se** pelo cenário utilizando as setas do teclado.
+2. **Interaja** com os elementos do jogo:
+   - Colete a chave para desbloquear novas áreas.
+   - Entre na casa e explore o interior para encontrar o baú e outros itens.
+3. **Progrida entre os níveis**:
+   - Nível 1: Explore o campo.
+   - Nível 2: Entre na casa, pegue a chave e encontre a saída.
+   - Nível 3: Acesse ao alcançar a porta azul.
+
+## Requisitos
+
+- Python 3.8 ou superior.
+- Biblioteca Pygame.
+
+## Instalação
+
+1. Clone o repositório:
+   
+   git clone https://github.com/seu-usuario/jogo-de-aventura-pygame.git
+   cd jogo-de-aventura-pygame
