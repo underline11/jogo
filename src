@@ -1,0 +1,238 @@
+import pygame
+
+# Inicializa o Pygame
+pygame.init()
+
+# Tamanho da tela
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Cores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+TILE_COLOR = (210, 105, 30)  # Cor dos tijolos
+BROWN = (139, 69, 19)  # Cor da madeira
+GREEN = (0, 255, 0)  # Cor do escudo
+RED = (255, 0, 0)  # Cor da vida
+BLUE = (0, 0, 255)  # Cor da porta azul
+YELLOW = (255, 255, 0)  # Cor da chave
+
+# Configurações do jogador
+player_width, player_height = 50, 50
+player_x, player_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+player_speed = 5
+player_life = 100  # Vida do jogador
+shield = False  # Flag para indicar se o jogador tem o escudo
+has_key = False  # Flag para indicar se o jogador pegou a chave
+
+# Configuração da casa, baú e chave
+house_x, house_y = 300, 200
+chest_x, chest_y = 320, 450  # Baú do escudo (no canto inferior esquerdo da casa)
+key_x, key_y = 400, 300  # Posição da chave dentro da casa
+chest_width, chest_height = 40, 40
+key_width, key_height = 30, 30  # Tamanho da chave
+level = 1  # Nível inicial
+inside_house = False  # Flag para saber se o jogador está dentro da casa
+map_width, map_height = 16, 12  # Mapa de 800x600 (16x12 células de 50px)
+grid_size = 50  # Tamanho de cada célula da grade
+
+# Função para desenhar o jogador
+def draw_player(x, y, shield):
+    color = BLACK
+    if shield:  # Se o jogador tem escudo, muda a cor para verde
+        color = GREEN
+    pygame.draw.rect(screen, color, (x, y, player_width, player_height))
+
+# Função para desenhar a chave
+def draw_key(x, y):
+    pygame.draw.rect(screen, YELLOW, (x, y, key_width, key_height))  # Desenha a chave (retângulo amarelo)
+
+# Função para desenhar o campo
+def draw_field(map_width, map_height):
+    for row in range(map_height):
+        for col in range(map_width):
+            pygame.draw.rect(screen, (169, 169, 169), (col * grid_size, row * grid_size, grid_size, grid_size), 1)
+
+# Função para desenhar a tocha
+def draw_torch(x, y):
+    pygame.draw.circle(screen, (255, 223, 0), (x + player_width // 2, y - 20), 30)  # Iluminação da tocha
+
+# Função para desenhar a barra de vida
+def draw_life_bar(life):
+    pygame.draw.rect(screen, (255, 0, 0), (20, 20, 200, 25))  # Fundo da barra de vida
+    pygame.draw.rect(screen, (0, 255, 0), (20, 20, life * 2, 25))  # Vida atual (escala 2 pixels por ponto de vida)
+
+# Função para desenhar a casa (exterior)
+def draw_house(x, y):
+    # Base da casa (parede de tijolos)
+    pygame.draw.rect(screen, TILE_COLOR, (x, y, 200, 150))
+    
+    # Telhado (simples)
+    pygame.draw.polygon(screen, (255, 0, 0), [(x, y), (x + 200, y), (x + 100, y - 50)])
+
+    # Janelas
+    pygame.draw.rect(screen, (0, 0, 255), (x + 30, y + 30, 40, 40))  # Janela 1
+    pygame.draw.rect(screen, (0, 0, 255), (x + 130, y + 30, 40, 40))  # Janela 2
+
+    # Porta
+    pygame.draw.rect(screen, BROWN, (x + 80, y + 100, 40, 50))  # Porta
+
+# Função para desenhar o interior da casa
+def draw_inside_house():
+    # Paredes internas (cor dos tijolos)
+    pygame.draw.rect(screen, TILE_COLOR, (100, 100, 600, 400))  # Parede
+    pygame.draw.rect(screen, (255, 255, 255), (200, 150, 400, 300))  # Área dentro da casa
+
+    # Janela interna
+    pygame.draw.rect(screen, (0, 0, 255), (200, 200, 60, 60))  # Janela interna
+
+    # Móveis (exemplo simples)
+    pygame.draw.rect(screen, BROWN, (300, 300, 100, 50))  # Cama ou sofá simples
+    pygame.draw.rect(screen, BROWN, (500, 300, 100, 50))  # Mesa
+
+    # Baú (no canto inferior esquerdo)
+    pygame.draw.rect(screen, GREEN, (chest_x, chest_y, chest_width, chest_height))  # Baú
+
+    # Chave (na posição definida)
+    if not has_key:  # Só desenha a chave se o jogador não a pegou
+        draw_key(key_x, key_y)
+
+    # Porta interna (azul)
+    pygame.draw.rect(screen, BLUE, (500, 100, 40, 60))  # Porta interna azul
+
+# Função para desenhar a porta do nível 3
+def draw_level_3_door():
+    pygame.draw.rect(screen, (0, 0, 255), (700, 250, 50, 100))  # Porta do nível 3 (azul)
+
+# Função para mover o jogador
+def move_player(x, y, dx, dy):
+    x += dx
+    y += dy
+    return x, y
+
+# Função para verificar se o jogador entrou na casa
+def check_house_entry(player_x, player_y):
+    if (player_x + player_width > house_x + 80 and
+        player_x < house_x + 120 and
+        player_y + player_height > house_y + 100 and
+        player_y < house_y + 150):
+        return True
+    return False
+
+# Função para verificar se o jogador pegou o baú
+def check_chest_collision(player_x, player_y, chest_x, chest_y):
+    if (player_x < chest_x + chest_width and player_x + player_width > chest_x and
+        player_y < chest_y + chest_height and player_y + player_height > chest_y):
+        return True
+    return False
+
+# Função para verificar se o jogador pegou a chave
+def check_key_collision(player_x, player_y, key_x, key_y):
+    global has_key
+    if (player_x < key_x + key_width and player_x + player_width > key_x and
+        player_y < key_y + key_height and player_y + player_height > key_y):
+        has_key = True  # O jogador pega a chave
+        return True
+    return False
+
+# Função para verificar se o jogador saiu do mapa e deve transitar para outro nível
+def check_map_transition(player_x, player_y):
+    # Se o jogador passar pela borda direita do mapa
+    if player_x >= SCREEN_WIDTH - player_width:
+        return True
+    return False
+
+# Função para verificar se o jogador saiu da casa (porta azul)
+def check_house_exit(player_x, player_y):
+    if (player_x + player_width > 500 and player_x < 540 and
+        player_y + player_height > 100 and player_y < 160):
+        return True
+    return False
+
+# Função para verificar se o jogador alcançou a porta do nível 3
+def check_level_3_door(player_x, player_y):
+    if (player_x + player_width > 700 and player_x < 750 and
+        player_y + player_height > 250 and player_y < 350):
+        return True
+    return False
+
+# Loop principal do jogo
+clock = pygame.time.Clock()
+
+running = True
+while running:
+    screen.fill(WHITE)  # Limpa a tela
+
+    # Processa os eventos (input do jogador)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Movimenta o jogador com as setas do teclado
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT]:
+        player_x += player_speed
+    if keys[pygame.K_UP]:
+        player_y -= player_speed
+    if keys[pygame.K_DOWN]:
+        player_y += player_speed
+
+    # Transição para o nível 2 ao passar da borda
+    if check_map_transition(player_x, player_y) and level == 1:
+        level = 2
+        player_x = 300
+        player_y = 200  # Posição inicial no nível 2
+
+    # Transição para o nível 3 ao passar pela porta
+    if level == 2 and has_key and check_level_3_door(player_x, player_y):
+        level = 3  # Entrou no nível 3
+        player_x = 100
+        player_y = 100  # Posição inicial no nível 3
+
+    # Verifica se o jogador entrou na casa
+    if level == 2 and check_house_entry(player_x, player_y):
+        inside_house = True
+
+    # Verifica se o jogador pegou a chave
+    if level == 2 and check_key_collision(player_x, player_y, key_x, key_y):
+        has_key = True
+
+    # Verifica se o jogador saiu da casa
+    if inside_house and check_house_exit(player_x, player_y):
+        inside_house = False  # Jogador saiu da casa
+
+    # Desenha o mapa
+    if level == 1:
+        draw_field(map_width, map_height)
+    elif level == 2:
+        draw_field(map_width, map_height)
+        draw_house(house_x, house_y)  # Casa
+        if inside_house:
+            draw_inside_house()  # Dentro da casa
+        else:
+            draw_key(key_x, key_y)  # Desenha a chave no nível 2 se o jogador não a pegou
+
+    # Desenha o baú
+    if level == 2 and not inside_house:
+        pygame.draw.rect(screen, GREEN, (chest_x, chest_y, chest_width, chest_height))  # Baú
+
+    # Desenha o jogador
+    draw_player(player_x, player_y, shield)
+
+    # Desenha a barra de vida
+    draw_life_bar(player_life)
+
+    # Desenha a porta do nível 3 (se o jogador tem a chave)
+    if has_key:
+        draw_level_3_door()
+
+    # Atualiza a tela
+    pygame.display.flip()
+
+    # Controla o FPS
+    clock.tick(60)
+
+# Finaliza o Pygame
+pygame.quit()
