@@ -1,0 +1,45 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Diretórios de ambiente virtual
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# Configurações do IDE/Editor
+.vscode/
+.idea/
+*.swp
+
+# Arquivos de log e temporários
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos gerados pelo Pygame
+*.wav
+*.ogg
+*.mp3
+*.png
+*.jpg
+*.bmp
+*.gif
+
+# Outros arquivos gerados ou não necessários
+*.sqlite3
+*.db
+*.tar.gz
+*.zip
+*.tar
+*.gzip
+*.7z
